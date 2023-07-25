@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatGPT Bot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .chat-box {
+      border: 1px solid #ccc;
+      padding: 10px;
+      max-height: 300px;
+      overflow-y: scroll;
+    }
+    .user-message {
+      background-color: #cce5ff;
+      padding: 8px;
+      border-radius: 5px;
+      margin-bottom: 5px;
+    }
+    .bot-message {
+      background-color: #e6ffcc;
+      padding: 8px;
+      border-radius: 5px;
+      margin-bottom: 5px;
+    }
+    .input-group {
+      display: flex;
+      margin-top: 10px;
+    }
+    .input-group input[type="text"] {
+      flex: 1;
+      padding: 5px;
+    }
+    .input-group button {
+      padding: 5px 10px;
+      background-color: #4CAF50;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ChatGPT Bot</h1>
+    <div class="chat-box" id="chat-box">
+      <div class="bot-message">Welcome! Type your message to chat with the ChatGPT Bot.</div>
+    </div>
+    <div class="input-group">
+      <input type="text" id="user-input" placeholder="Type your message...">
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const chatBox = document.getElementById("chat-box");
+      const userInput = document.getElementById("user-input");
+      const sendBtn = document.getElementById("send-btn");
+
+      sendBtn.addEventListener("click", async () => {
+        const message = userInput.value.trim();
+        if (!message) return;
+
+        const response = await fetch("/create_prompt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: message })
+        });
+        if (!response.ok) {
+          alert("Failed to send message. Please try again.");
+          return;
+        }
+
+        const data = await response.json();
+        const botResponse = await fetch(`/get_response/${data.prompt_index}`);
+        const botData = await botResponse.json();
+
+        const userMessage = document.createElement("div");
+        userMessage.className = "user-message";
+        userMessage.textContent = message;
+
+        const botMessage = document.createElement("div");
+        botMessage.className = "bot-message";
+        botMessage.textContent = botData.response;
+
+        chatBox.appendChild(userMessage);
+        chatBox.appendChild(botMessage);
+        userInput.value = "";
+      });
+    });
+  </script>
+</body>
+</html>
